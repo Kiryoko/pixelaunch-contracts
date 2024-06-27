@@ -19,6 +19,7 @@ library ChainId {
     uint256 internal constant Kava = 2222;
     uint256 internal constant Linea = 59144;
     uint256 internal constant Base = 8453;
+    uint256 internal constant Taiko = 167000;
 }
 
 library Block {

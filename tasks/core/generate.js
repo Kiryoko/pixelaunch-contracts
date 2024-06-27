@@ -19,7 +19,8 @@ module.exports = async function (taskArgs, hre) {
     10: "Optimism",
     42161: "Arbitrum",
     43114: "Avalanche",
-    1285: "Moonriver"
+    1285: "Moonriver",
+    167000: "Taiko"
   };
 
   let answers = {};

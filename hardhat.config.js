@@ -115,6 +115,12 @@ module.exports = {
       api_key: process.env.BASE_ETHERSCAN_KEY,
       chainId: 8453,
       accounts
+    },
+    taiko: {
+        url: process.env.TAIKO_RPC_URL,
+        api_key: process.env.TAIKO_ETHERSCAN_KEY,
+        chainId: 167000,
+        accounts
     }
   }
 };

@@ -11,6 +11,7 @@ module.exports = async function (taskArgs, hre) {
     2222: "Kava",
     59144: "Linea",
     8453: "Base",
+    167000: "Taiko"
   };
 
   const { userConfig } = hre;
