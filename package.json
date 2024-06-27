@@ -62,5 +62,6 @@
       "url": "https://github.com/Abracadabra-money/forge-deploy",
       "commit": "a81ce1a5704bbee4686a13209bc17f80132542f9"
     }
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
 }
