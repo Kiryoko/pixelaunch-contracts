@@ -68,7 +68,8 @@ contract Toolkit {
         ChainId.Moonriver,
         ChainId.Kava,
         ChainId.Linea,
-        ChainId.Base
+        ChainId.Base,
+        ChainId.Taiko
     ];
 
     bool public testing;
@@ -93,6 +94,7 @@ contract Toolkit {
         chainIdToName[ChainId.Kava] = "Kava";
         chainIdToName[ChainId.Linea] = "Linea";
         chainIdToName[ChainId.Base] = "Base";
+        chainIdToName[ChainId.Taiko] = "Taiko";
 
         for (uint i = 0; i < chains.length; i++) {
             uint256 chainId = chains[i];
