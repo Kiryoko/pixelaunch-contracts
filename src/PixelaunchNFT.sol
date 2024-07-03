@@ -16,7 +16,7 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
         uint96 shares;
     }
 
-    struct PixelaunchNFTParams {
+    struct ConstructorParams {
         string name;
         string symbol;
         uint256 maxSupply;
@@ -40,6 +40,7 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
 
     uint256 public mintStartTimestamp;
     uint256 public whitelistMintDuration;
+    uint256 public totalWhitelistSupply;
 
     uint256 public publicMintPrice;
     uint256 public whitelistMintPrice;
@@ -51,7 +52,6 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
     string public baseURI;
 
     uint256 private _nextTokenId;
-    uint256 private _whitelistSupply;
 
     event WhitelistMintPriceChanged(uint256 previousMintPrice, uint256 newMintPrice);
     event PublicMintPriceChanged(uint256 previousMintPrice, uint256 newMintPrice);
@@ -72,7 +72,7 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
     error TimestampInThePast();
     error TransferFailed(address recipient);
 
-    constructor(PixelaunchNFTParams memory params) ERC721(params.name, params.symbol) Ownable(msg.sender) {
+    constructor(ConstructorParams memory params) ERC721(params.name, params.symbol) Ownable(msg.sender) {
         MAX_SUPPLY = params.maxSupply;
         RESERVED_SUPPLY = params.reservedSupply;
         RESERVED_SUPPLY_RECIPIENT = params.reservedSupplyRecipient;
@@ -142,7 +142,7 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
     }
 
     function _whitelistMint() private {
-        if (_whitelistSupply == MAX_WHITELIST_SUPPLY) {
+        if (totalWhitelistSupply == MAX_WHITELIST_SUPPLY) {
             revert MaxWhitelistSupplyReached();
         }
 
@@ -151,7 +151,7 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
         }
 
         _removeWhitelistSpots(msg.sender, 1);
-        _whitelistSupply++;
+        totalWhitelistSupply++;
         _mint(msg.sender);
         emit WhitelistMint(msg.sender, _nextTokenId - 1);
     }
