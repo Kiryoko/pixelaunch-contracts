@@ -277,7 +277,7 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
     }
 
     function setDefaultRoyalty(address recipient, uint96 royaltyBps) public onlyOwner {
-        if (royaltyBps > 1000) {
+        if (royaltyBps > 1500) {
             revert RoyaltyTooHigh();
         }
 
