@@ -45,6 +45,9 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
     uint256 public publicMintPrice;
     uint256 public whitelistMintPrice;
 
+    uint256 public maxWhitelistMintPerTx;
+    uint256 public maxPublicMintPerTx;
+
     // these will be a PaymentSplitter contract if there are multiple beneficiaries
     address payable public mintFundsBeneficiary;
     address payable public royaltyFundsBeneficiary;
@@ -71,6 +74,8 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
     error RoyaltyTooHigh();
     error TimestampInThePast();
     error TransferFailed(address recipient);
+    error MaxWhitelistMintPerTxExceeded();
+    error MaxPublicMintPerTxExceeded();
 
     constructor(ConstructorParams memory params) ERC721(params.name, params.symbol) Ownable(msg.sender) {
         MAX_SUPPLY = params.maxSupply;
@@ -146,10 +151,6 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
             revert MaxWhitelistSupplyReached();
         }
 
-        if (whitelistSpots[msg.sender] == 0) {
-            revert Whitelistable.NotEnoughWhitelistSpots();
-        }
-
         _removeWhitelistSpots(msg.sender, 1);
         totalWhitelistSupply++;
         _mint(msg.sender);
@@ -168,6 +169,10 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
 
         if (amount == 0) {
             revert InvalidAmount();
+        }
+
+        if (amount > maxPublicMintPerTx) {
+            revert MaxPublicMintPerTxExceeded();
         }
 
         uint256 totalMintPrice = publicMintPrice * amount;
@@ -206,6 +211,10 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
 
         if (amount == 0) {
             revert InvalidAmount();
+        }
+
+        if (amount > maxWhitelistMintPerTx) {
+            revert MaxWhitelistMintPerTxExceeded();
         }
 
         uint256 totalMintPrice = whitelistMintPrice * amount;
@@ -322,6 +331,14 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
 
             mintFundsBeneficiary = payable((new RoyaltyPaymentSplitter(recipients, shares)));
         }
+    }
+
+    function setMaxWhitelistMintPerTx(uint256 _maxWhitelistMintPerTx) public onlyOwner {
+        maxWhitelistMintPerTx = _maxWhitelistMintPerTx;
+    }
+
+    function setMaxPublicMintPerTx(uint256 _maxPublicMintPerTx) public onlyOwner {
+        maxPublicMintPerTx = _maxPublicMintPerTx;
     }
 
     function withdraw() public onlyOwner {
