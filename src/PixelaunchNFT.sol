@@ -152,22 +152,6 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
         _nextTokenId++;
     }
 
-    function _whitelistMint() private {
-        if (totalWhitelistSupply == MAX_WHITELIST_SUPPLY) {
-            revert MaxWhitelistSupplyReached();
-        }
-
-        _removeWhitelistSpots(msg.sender, 1);
-        totalWhitelistSupply++;
-        _mint(msg.sender);
-        emit WhitelistMint(msg.sender, _nextTokenId - 1);
-    }
-
-    function _publicMint() private {
-        _mint(msg.sender);
-        emit PublicMint(msg.sender, _nextTokenId - 1);
-    }
-
     function publicMint(uint256 amount) public payable whenNotPaused nonReentrant {
         if (block.timestamp < mintStartTimestamp + whitelistMintDuration) {
             revert MintingNotStarted();
@@ -191,8 +175,9 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
         }
 
         for (uint256 i = 0; i < amount; i++) {
-            _publicMintCount[msg.sender]++;
-            _publicMint();
+            _publicMintCount[msg.sender]++; // increment here to keep mint count consistent between mints
+            _mint(msg.sender);
+            emit PublicMint(msg.sender, _nextTokenId - 1);
         }
 
         (bool success, ) = mintFundsBeneficiary.call{value: totalMintPrice}("");
@@ -216,6 +201,10 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
             revert MintingNotStarted();
         }
 
+        if (totalWhitelistSupply + amount > MAX_WHITELIST_SUPPLY) {
+            revert MaxWhitelistSupplyReached();
+        }
+
         if (block.timestamp >= mintStartTimestamp + whitelistMintDuration) {
             revert WhitelistMintingEnded();
         }
@@ -237,9 +226,14 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
             revert MintPriceNotPaid();
         }
 
+        _removeWhitelistSpots(msg.sender, amount); // will revert if not enough spots
+
         for (uint256 i = 0; i < amount; i++) {
+            // increment here to keep supply and mint count consistent between mints
+            totalWhitelistSupply++;
             _whitelistMintCount[msg.sender]++;
-            _whitelistMint();
+            _mint(msg.sender);
+            emit WhitelistMint(msg.sender, _nextTokenId - 1);
         }
 
         (bool success, ) = mintFundsBeneficiary.call{value: totalMintPrice}("");
@@ -299,6 +293,10 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
         uint256 previousMintStartTimestamp = mintStartTimestamp;
         mintStartTimestamp = _mintStartTimestamp;
         emit MintStartTimestampChanged(previousMintStartTimestamp, mintStartTimestamp);
+    }
+
+    function setWhitelistMintDuration(uint256 _whitelistMintDuration) public onlyOwner {
+        whitelistMintDuration = _whitelistMintDuration;
     }
 
     function setBaseURI(string memory baseURI_) public onlyOwner {
