@@ -261,6 +261,12 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
         emit PublicMintPriceChanged(previousMintPrice, publicMintPrice);
     }
 
+    function setWhitelistMintPrice(uint256 _mintPrice) public onlyOwner {
+        uint256 previousMintPrice = whitelistMintPrice;
+        whitelistMintPrice = _mintPrice;
+        emit WhitelistMintPriceChanged(previousMintPrice, whitelistMintPrice);
+    }
+
     function setMintStartTimestamp(uint256 _mintStartTimestamp) public onlyOwner {
         if (_mintStartTimestamp < block.timestamp) {
             revert TimestampInThePast();
@@ -282,6 +288,40 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
         }
 
         super._setDefaultRoyalty(recipient, royaltyBps);
+    }
+
+    function setRoyaltyFundsBeneficiaries(FundsBeneficiary[] memory fundsBeneficiaries) public onlyOwner {
+        if (fundsBeneficiaries.length == 1) {
+            royaltyFundsBeneficiary = payable(fundsBeneficiaries[0].recipient);
+        } else {
+            address[] memory recipients = new address[](fundsBeneficiaries.length);
+            uint256[] memory shares = new uint256[](fundsBeneficiaries.length);
+
+            for (uint256 i = 0; i < fundsBeneficiaries.length; i++) {
+                recipients[i] = fundsBeneficiaries[i].recipient;
+                shares[i] = fundsBeneficiaries[i].shares;
+            }
+
+            royaltyFundsBeneficiary = payable((new RoyaltyPaymentSplitter(recipients, shares)));
+        }
+
+        super._setDefaultRoyalty(royaltyFundsBeneficiary, fundsBeneficiaries[0].shares);
+    }
+
+    function setMintFundsBeneficiaries(FundsBeneficiary[] memory fundsBeneficiaries) public onlyOwner {
+        if (fundsBeneficiaries.length == 1) {
+            mintFundsBeneficiary = payable(fundsBeneficiaries[0].recipient);
+        } else {
+            address[] memory recipients = new address[](fundsBeneficiaries.length);
+            uint256[] memory shares = new uint256[](fundsBeneficiaries.length);
+
+            for (uint256 i = 0; i < fundsBeneficiaries.length; i++) {
+                recipients[i] = fundsBeneficiaries[i].recipient;
+                shares[i] = fundsBeneficiaries[i].shares;
+            }
+
+            mintFundsBeneficiary = payable((new RoyaltyPaymentSplitter(recipients, shares)));
+        }
     }
 
     function withdraw() public onlyOwner {
