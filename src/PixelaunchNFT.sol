@@ -47,6 +47,8 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
 
     uint256 public maxWhitelistMintPerTx;
     uint256 public maxPublicMintPerTx;
+    uint256 public maxWhitelistMintPerWallet;
+    uint256 public maxPublicMintPerWallet;
 
     // these will be a PaymentSplitter contract if there are multiple beneficiaries
     address payable public mintFundsBeneficiary;
@@ -54,6 +56,8 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
 
     string public baseURI;
 
+    mapping(address wallet => uint256) public _whitelistMintCount;
+    mapping(address wallet => uint256) public _publicMintCount;
     uint256 private _nextTokenId;
 
     event WhitelistMintPriceChanged(uint256 previousMintPrice, uint256 newMintPrice);
@@ -76,6 +80,8 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
     error TransferFailed(address recipient);
     error MaxWhitelistMintPerTxExceeded();
     error MaxPublicMintPerTxExceeded();
+    error MaxWhitelistMintPerWalletExceeded();
+    error MaxPublicMintPerWalletExceeded();
 
     constructor(ConstructorParams memory params) ERC721(params.name, params.symbol) Ownable(msg.sender) {
         MAX_SUPPLY = params.maxSupply;
@@ -175,12 +181,17 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
             revert MaxPublicMintPerTxExceeded();
         }
 
+        if (_publicMintCount[msg.sender] + amount > maxPublicMintPerWallet) {
+            revert MaxPublicMintPerWalletExceeded();
+        }
+
         uint256 totalMintPrice = publicMintPrice * amount;
         if (msg.value < totalMintPrice) {
             revert MintPriceNotPaid();
         }
 
         for (uint256 i = 0; i < amount; i++) {
+            _publicMintCount[msg.sender]++;
             _publicMint();
         }
 
@@ -217,12 +228,17 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
             revert MaxWhitelistMintPerTxExceeded();
         }
 
+        if (_whitelistMintCount[msg.sender] + amount > maxWhitelistMintPerWallet) {
+            revert MaxWhitelistMintPerWalletExceeded();
+        }
+
         uint256 totalMintPrice = whitelistMintPrice * amount;
         if (msg.value < totalMintPrice) {
             revert MintPriceNotPaid();
         }
 
         for (uint256 i = 0; i < amount; i++) {
+            _whitelistMintCount[msg.sender]++;
             _whitelistMint();
         }
 
@@ -339,6 +355,14 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
 
     function setMaxPublicMintPerTx(uint256 _maxPublicMintPerTx) public onlyOwner {
         maxPublicMintPerTx = _maxPublicMintPerTx;
+    }
+
+    function setMaxWhitelistMintPerWallet(uint256 _maxWhitelistMintPerWallet) public onlyOwner {
+        maxWhitelistMintPerWallet = _maxWhitelistMintPerWallet;
+    }
+
+    function setMaxPublicMintPerWallet(uint256 _maxPublicMintPerWallet) public onlyOwner {
+        maxPublicMintPerWallet = _maxPublicMintPerWallet;
     }
 
     function withdraw() public onlyOwner {
