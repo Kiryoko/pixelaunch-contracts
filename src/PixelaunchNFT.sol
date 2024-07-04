@@ -67,6 +67,9 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
     event WhitelistMint(address indexed minter, uint256 tokenId);
     event PublicMint(address indexed minter, uint256 tokenId);
 
+    error InvalidMaxSupply();
+    error InvalidMaxWhitelistSupply();
+    error InvalidReservedSupply();
     error MaxSupplyReached();
     error MaxWhitelistSupplyReached();
     error InvalidAmount();
@@ -84,6 +87,26 @@ contract PixelaunchNFT is ERC721, ERC721Enumerable, ERC721Pausable, ERC2981, Ree
     error MaxPublicMintPerWalletExceeded();
 
     constructor(ConstructorParams memory params) ERC721(params.name, params.symbol) Ownable(msg.sender) {
+        if (params.maxSupply == 0) {
+            revert InvalidMaxSupply();
+        }
+
+        if (params.reservedSupply > params.maxSupply) {
+            revert InvalidReservedSupply();
+        }
+
+        if (params.maxWhitelistSupply + params.reservedSupply > params.maxSupply) {
+            revert InvalidMaxWhitelistSupply();
+        }
+
+        if (params.mintStartTimestamp < block.timestamp) {
+            revert TimestampInThePast();
+        }
+
+        if (params.royaltyBps > 1500) {
+            revert RoyaltyTooHigh();
+        }
+
         MAX_SUPPLY = params.maxSupply;
         RESERVED_SUPPLY = params.reservedSupply;
         RESERVED_SUPPLY_RECIPIENT = params.reservedSupplyRecipient;
