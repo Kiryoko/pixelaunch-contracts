@@ -13,6 +13,7 @@ abstract contract BaseTest is Test {
     address payable internal alice;
     address payable internal bob;
     address payable internal carol;
+    uint256 internal defaultInitialUserBalance = 100 ether;
     address[] pranks;
 
     ArbSysMock arbsys;
@@ -31,9 +32,9 @@ abstract contract BaseTest is Test {
     function setUp() public virtual {
         popAllPranks();
 
-        alice = createUser("alice", address(0x1), 100 ether);
-        bob = createUser("bob", address(0x2), 100 ether);
-        carol = createUser("carol", address(0x3), 100 ether);
+        alice = createUser("alice", address(0x1));
+        bob = createUser("bob", address(0x2));
+        carol = createUser("carol", address(0x3));
 
         if (block.chainid == ChainId.Arbitrum) {
             arbsys = new ArbSysMock();
@@ -45,6 +46,10 @@ abstract contract BaseTest is Test {
         vm.deal(account, amount);
         vm.label(account, label);
         return payable(account);
+    }
+
+    function createUser(string memory label, address account) internal returns (address payable) {
+        return createUser(label, account, defaultInitialUserBalance);
     }
 
     function advanceBlocks(uint256 delta) internal returns (uint256 blockNumber) {
