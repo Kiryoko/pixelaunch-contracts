@@ -20,7 +20,8 @@ remappings = [
     'interfaces/=src/interfaces',
     'mixins/=src/mixins',
     'solady/=lib/solady/src/',
-    'forge-deploy/=lib/forge-deploy/contracts'
+    'forge-deploy/=lib/forge-deploy/contracts',
+    '@pixelaunch/=src/',
 ]
 auto_detect_remappings = false
 match-path = "test/**/*.t.sol"
