@@ -52,3 +52,13 @@ task(
     "blocknumbers",
     "Retrieve the latest block numbers for each network",
     require("./core/blocknumbers"))
+
+task(
+    "run-forge-script",
+    "Run a forge script",
+    require("./core/runForgeScript"))
+    .addParam("script", "The script to run")
+    .addParam("function", "The function to run")
+    .addFlag("broadcast", "broadcast the transaction")
+    .addFlag("noConfirm", "do not ask for confirmation")
+    .addOptionalVariadicPositionalParam("extra", "Extra arguments to pass to the script")
