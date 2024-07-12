@@ -6,14 +6,23 @@ module.exports = async function (taskArgs, hre) {
     let broadcast_args = "";
     let verify_args = "";
     let env_args = "";
+    let use_existing_anvil = true;
+    let kill_anvil_after_deployment = false;
     let anvilProcessId;
 
     if (hre.network.name === "localhost") {
         env_args = "DEPLOYMENT_CONTEXT=localhost";
         taskArgs.verify = false;
 
-        console.log("Starting Anvil...");
-        anvilProcessId = shell.exec('killall -9 anvil; anvil > /dev/null 2>&1 & echo $!', { silent: true, fatal: true }).stdout.trim();
+        if (use_existing_anvil) {
+            console.log("Checking if there's an existing Anvil process...");
+            anvilProcessId = shell.exec('pgrep anvil', { silent: true }).stdout.trim();
+        }
+
+        if (!anvilProcessId) {
+            console.log("Starting Anvil...");
+            anvilProcessId = shell.exec('killall -9 anvil; anvil > /dev/null 2>&1 & echo $!', { silent: true, fatal: true }).stdout.trim();
+        }
     }
 
     console.log(`Using network ${hre.network.name}`);
@@ -92,7 +101,7 @@ module.exports = async function (taskArgs, hre) {
         process.exit(result.code);
     }
 
-    if (anvilProcessId) {
+    if (anvilProcessId && kill_anvil_after_deployment) {
         console.log("Stopping Anvil...");
         await shell.exec(`kill ${anvilProcessId}`, { silent: true });
     }
